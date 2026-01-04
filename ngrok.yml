@@ -1,0 +1,7 @@
+version: '2'
+authtoken: 35LJJXINw6Nda7M1BGAOkqXFdR7_7GrFVA39tt6iSN5C5xgjB
+tunnels:
+  linkedin-api:
+    addr: linkedin-scraper:5000
+    proto: http
+    inspect: true
