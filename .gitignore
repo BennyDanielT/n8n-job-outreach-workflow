@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg-info/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Environment variables
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test and coverage
+.coverage
+htmlcov/
+*.cover
+*.py,cover
+
+# Docker
+*.pid
+docker-compose.override.yml
+
+# Selenium/Chrome
+selenium_profile/
+chrome-profile/
+
+# PDF output
+*.pdf
+
+# Misc
+*.sqlite3
+*.db
+
+# Gotenberg temp files
+*.tmp
+
+# Node/n8n
+node_modules/
+n8n_local_files/
+
+# Other
+build/
+dist/
+*.bak
+*.swp
+*.swo
+
+# Ignore generated files
+output/

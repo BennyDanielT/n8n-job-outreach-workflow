@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+ENV/
+env/
+.git
+.gitignore
+*.log
+linkedin_jobs.json
+linkedin_jobs.csv
+linkedin_scraper.log
+README.md
+linkedin_job_scraper.py
