@@ -469,7 +469,7 @@ async def gotenberg_health():
     """
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get("http://gotenberg:3000/health", timeout=5.0)
+            response = await client.get("http://localhost:3000/health", timeout=5.0)
             return {
                 "success": True,
                 "gotenberg_status": (
@@ -498,7 +498,7 @@ async def convert_url_to_pdf(
             files = {"url": (None, url)}
 
             response = await client.post(
-                "http://gotenberg:3000/forms/chromium/convert/url", files=files
+                "http://localhost:3000/forms/chromium/convert/url", files=files
             )
 
             if response.status_code != 200:
@@ -539,7 +539,7 @@ async def convert_html_to_pdf(html_file: UploadFile = File(...)):
             files = {"files": ("index.html", html_content, "text/html")}
 
             response = await client.post(
-                "http://gotenberg:3000/forms/chromium/convert/html", files=files
+                "http://localhost:3000/forms/chromium/convert/html", files=files
             )
 
             if response.status_code != 200:
@@ -583,7 +583,7 @@ async def convert_html_string_to_pdf(
             files = {"files": ("index.html", html_content.encode(), "text/html")}
 
             response = await client.post(
-                "http://gotenberg:3000/forms/chromium/convert/html", files=files
+                "http://localhost:3000/forms/chromium/convert/html", files=files
             )
 
             if response.status_code != 200:
