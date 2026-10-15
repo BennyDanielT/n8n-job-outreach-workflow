@@ -1,5 +1,5 @@
 version: '2'
-authtoken: 35LJJXINw6Nda7M1BGAOkqXFdR7_7GrFVA39tt6iSN5C5xgjB
+authtoken: ${NGROK_AUTHTOKEN}  # never commit the real token
 tunnels:
   linkedin-api:
     addr: linkedin-scraper:5000

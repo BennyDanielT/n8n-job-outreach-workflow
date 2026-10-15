@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest>=9.1
+# Local PDF rendering without Docker (PDF_ENGINE=weasyprint). Needs Pango: see README.
+weasyprint>=70

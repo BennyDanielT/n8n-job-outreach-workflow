@@ -63,3 +63,8 @@ dist/
 
 # Ignore generated files
 output/
+
+# Job Copilot
+data/*.db
+data/*.db-*
+.pytest_cache/
