@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Copilot</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --panel: #fff; --ink: #1c1b19; --muted: #6b6860; --line: #e3e0d8; --hover: #f1efe9;
+    --accent: #2f5d50; --accent-ink: #fff; --good: #2f7d4f; --warn: #a86b00; --bad: #b3261e; --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161614; --panel: #1f1f1c; --ink: #ecebe6; --muted: #a29f96; --line: #33322e; --hover: #282824;
+            --accent: #7fb8a6; --accent-ink: #10201b; --good: #6cc48f; --warn: #e0a83a; --bad: #f08a80; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14.5px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header.top { display: flex; align-items: center; gap: 16px; padding: 14px 24px; flex-wrap: wrap; }
+  header.top h1 { font-size: 19px; margin: 0; }
+  nav.tabs { display: flex; gap: 4px; }
+  nav.tabs button { border: 0; background: transparent; padding: 6px 12px; border-radius: 8px; color: var(--muted); font-weight: 600; }
+  nav.tabs button.on { background: var(--panel); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+  main { padding: 0 24px 24px; }
+  @media (max-width: 760px) { main, header.top { padding-left: 16px; padding-right: 16px; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+  button, input, select, textarea { font: inherit; color: var(--ink); }
+  button { font-weight: 600; border-radius: 8px; padding: 7px 12px; cursor: pointer; border: 1px solid var(--line); background: var(--panel); white-space: nowrap; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  button.small { padding: 3px 9px; font-size: 13px; }
+  button:disabled { opacity: .55; cursor: progress; }
+  input, select, textarea { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; background: transparent; width: 100%; }
+  textarea { resize: vertical; }
+  label.f { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin: 0 0 4px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .grow { flex: 1; min-width: 140px; }
+  .hint { color: var(--muted); font-size: 12.5px; }
+  .err { color: var(--bad); font-size: 13px; }
+  [hidden] { display: none !important; }
+
+  /* stats */
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+  @media (max-width: 760px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
+  .stat b { display: block; font-size: 22px; line-height: 1.15; }
+  .stat span { color: var(--muted); font-size: 12.5px; }
+  .meter { height: 4px; background: var(--line); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .meter i { display: block; height: 100%; background: var(--accent); }
+
+  /* toolbar + forms */
+  .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .chip { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-weight: 500; }
+  .chip.on { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+  .form { margin-bottom: 12px; }
+  .form .grid { display: grid; grid-template-columns: 2fr 1.4fr 1fr 0.8fr; gap: 8px; align-items: end; }
+  @media (max-width: 760px) { .form .grid { grid-template-columns: 1fr 1fr; } }
+
+  /* table */
+  .tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+  table.jobs { width: 100%; border-collapse: collapse; min-width: 760px; }
+  table.jobs th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); font-weight: 600; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+  table.jobs td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  table.jobs tr:last-child td { border-bottom: 0; }
+  table.jobs tbody tr { cursor: pointer; }
+  table.jobs tbody tr:hover { background: var(--hover); }
+  table.jobs tbody tr.sel { background: var(--hover); box-shadow: inset 3px 0 0 var(--accent); }
+  td .role { font-weight: 600; } td .co { color: var(--muted); font-size: 13px; }
+  td select { width: auto; padding: 3px 6px; font-size: 13px; }
+  .fit { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .due { color: var(--bad); font-weight: 600; }
+  .empty { padding: 40px; text-align: center; color: var(--muted); }
+
+  /* drawer */
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(760px, 100vw); background: var(--panel); border-left: 1px solid var(--line);
+            box-shadow: -8px 0 30px rgba(0,0,0,.08); overflow-y: auto; padding: 18px 20px 40px; z-index: 5; }
+  .drawer h2 { margin: 0; font-size: 19px; } .drawer .sub { color: var(--muted); margin: 2px 0 12px; }
+  .drawer h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 18px 0 6px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .desc { white-space: pre-wrap; font-size: 13px; max-height: 220px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  .report .stats { grid-template-columns: repeat(3, 1fr); }
+  ul.list { margin: 0; padding-left: 18px; font-size: 13px; }
+  .tag { font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); display: inline-block; margin: 2px 2px 0 0; }
+  .tag.have { border-color: var(--warn); color: var(--warn); } .tag.lack { border-color: var(--bad); color: var(--bad); }
+  .ok { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  iframe.resume { width: 100%; height: 1040px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  ol.timeline { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); }
+
+  /* quick tailor */
+  .quick { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 14px; }
+  @media (max-width: 900px) { .quick { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Job Copilot</h1>
+  <nav class="tabs"><button data-tab="tracker" class="on">Tracker</button><button data-tab="quick">Quick tailor</button></nav>
+</header>
+
+<main>
+<!-- ======================== TRACKER ======================== -->
+<section id="tab-tracker">
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <button class="primary" id="btn-add">Add job</button>
+    <button id="btn-search">Search LinkedIn</button>
+    <span class="grow"></span>
+    <input id="q" type="search" placeholder="Search company, role, location" style="max-width:260px">
+  </div>
+
+  <div class="panel form" id="form-add" hidden>
+    <div class="row">
+      <div class="grow"><label class="f" for="add-url">Posting URL</label>
+        <input id="add-url" type="url" placeholder="LinkedIn, Greenhouse, Lever, Ashby or any career page"></div>
+      <button class="primary" id="add-go">Add</button>
+    </div>
+    <details style="margin-top:8px"><summary class="hint">Or paste the description instead</summary>
+      <div class="two" style="margin-top:8px">
+        <input id="add-title" placeholder="Job title"><input id="add-company" placeholder="Company">
+      </div>
+      <textarea id="add-text" rows="6" style="margin-top:8px" placeholder="Full job description"></textarea>
+    </details>
+    <div class="err" id="add-err" hidden></div>
+  </div>
+
+  <div class="panel form" id="form-search" hidden>
+    <div class="grid">
+      <div><label class="f" for="s-kw">Keywords</label><input id="s-kw" value="AI Engineer"></div>
+      <div><label class="f" for="s-loc">Location</label>
+        <select id="s-loc">
+          <option value="101174742">Canada</option><option value="90009533">Greater Halifax</option>
+          <option value="90009551">Greater Toronto Area</option><option value="4338859666">Vancouver</option>
+          <option value="102199904">Calgary</option>
+        </select></div>
+      <div><label class="f" for="s-when">Posted within</label>
+        <select id="s-when"><option value="24">24 hours</option><option value="72">3 days</option><option value="168" selected>Week</option><option value="720">Month</option></select></div>
+      <div><label class="f" for="s-limit">Max</label><input id="s-limit" type="number" value="25" min="1" max="100"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label class="row" style="gap:6px"><input id="s-remote" type="checkbox" style="width:auto"> Remote only</label>
+      <label class="row" style="gap:6px"><input id="s-desc" type="checkbox" style="width:auto"> Read descriptions now (slower)</label>
+      <span class="grow"></span><button class="primary" id="s-go">Search</button>
+    </div>
+    <p class="hint" style="margin:8px 0 0">Uses your signed-in LinkedIn session (LINKEDIN_LI_AT). Keep it to a few searches a day.</p>
+    <div class="err" id="s-err" hidden></div>
+  </div>
+
+  <div class="toolbar"><div class="chips" id="chips"></div></div>
+  <div class="tablewrap"><table class="jobs">
+    <thead><tr><th>Role</th><th>Location</th><th>Fit</th><th>Status</th><th>Applied</th><th>Follow up</th><th></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table><div class="empty" id="empty" hidden>No jobs yet. Add one, or search LinkedIn.</div></div>
+</section>
+
+<!-- ======================== QUICK TAILOR ======================== -->
+<section id="tab-quick" hidden>
+  <div class="quick">
+    <div class="panel">
+      <label class="f" for="qt-text">Job description</label>
+      <textarea id="qt-text" rows="14" placeholder="Paste a job description to try the tailor without tracking it"></textarea>
+      <div class="row" style="margin-top:8px"><button class="primary" id="qt-go">Tailor</button><button id="qt-sample">Use sample</button></div>
+      <div class="err" id="qt-err" hidden></div>
+      <div class="report" id="qt-report"></div>
+    </div>
+    <div class="panel"><iframe class="resume" id="qt-frame" title="Tailored resume"></iframe></div>
+  </div>
+</section>
+</main>
+
+<!-- ======================== DRAWER ======================== -->
+<aside class="drawer" id="drawer" hidden aria-label="Job details"></aside>
+
+<script>
+const STATUSES = ["new","saved","applied","screen","interviewing","offer","rejected","withdrawn","archived"];
+const LABEL = { new:"New", saved:"Saved", applied:"Applied", screen:"Screen", interviewing:"Interviewing", offer:"Offer",
+                rejected:"Rejected", withdrawn:"Withdrawn", archived:"Archived" };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+const today = () => new Date().toISOString().slice(0, 10);
+let jobs = [], filter = "active", selected = null, editing = false;
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
+  if (!r.ok) {
+    let d = r.statusText; try { const j = await r.json(); d = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail); } catch {}
+    throw new Error(d);
+  }
+  return r.status === 204 ? null : r;
+}
+const json = async (p, o) => (await api(p, o)).json();
+function busy(btn, on, text) { if (!btn.dataset.label) btn.dataset.label = btn.textContent; btn.disabled = on; btn.textContent = on ? text : btn.dataset.label; }
+function showErr(el, msg) { el.textContent = msg || ""; el.hidden = !msg; }
+
+/* ---------- tabs ---------- */
+document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav.tabs button").forEach(x => x.classList.toggle("on", x === b));
+  $("tab-tracker").hidden = b.dataset.tab !== "tracker"; $("tab-quick").hidden = b.dataset.tab !== "quick";
+});
+
+/* ---------- stats ---------- */
+async function loadStats() {
+  const s = await json("/api/v1/stats");
+  const pct = Math.min(100, Math.round(100 * s.applied_last_7_days / s.weekly_target));
+  $("stats").innerHTML = `
+    <div class="stat"><b>${s.applied_last_7_days} / ${s.weekly_target}</b><span>Applied in the last 7 days</span><div class="meter"><i style="width:${pct}%"></i></div></div>
+    <div class="stat"><b>${s.applied_total}</b><span>Applied in total</span></div>
+    <div class="stat"><b>${Math.round(s.response_rate * 100)}%</b><span>Response rate (${s.responded} replied)</span></div>
+    <div class="stat"><b class="${s.follow_ups_due ? "bad" : ""}">${s.follow_ups_due}</b><span>Follow-ups due</span></div>`;
+}
+
+/* ---------- list ---------- */
+const FILTERS = { active: ["new","saved","applied","screen","interviewing","offer"], new: ["new"], saved: ["saved"],
+  applied: ["applied"], talking: ["screen","interviewing","offer"], closed: ["rejected","withdrawn","archived"], all: STATUSES };
+const FILTER_LABEL = { active:"Active", new:"New", saved:"To apply", applied:"Applied", talking:"In process", closed:"Closed", all:"All" };
+function renderChips() {
+  $("chips").innerHTML = Object.keys(FILTERS).map(k => {
+    const n = jobs.filter(j => FILTERS[k].includes(j.status)).length;
+    return `<button class="chip ${k === filter ? "on" : ""}" data-f="${k}">${FILTER_LABEL[k]} ${n}</button>`;
+  }).join("");
+  $("chips").querySelectorAll("button").forEach(b => b.onclick = () => { filter = b.dataset.f; render(); });
+}
+async function loadJobs() { jobs = await json("/api/v1/jobs?limit=1000"); render(); loadStats(); }
+function render() {
+  renderChips();
+  const q = $("q").value.trim().toLowerCase();
+  const rows = jobs.filter(j => FILTERS[filter].includes(j.status))
+    .filter(j => !q || [j.title, j.company, j.location].join(" ").toLowerCase().includes(q));
+  $("empty").hidden = rows.length > 0;
+  $("rows").innerHTML = rows.map(j => {
+    const due = j.follow_up_on && j.follow_up_on <= today() && ["applied","screen","interviewing"].includes(j.status);
+    return `<tr data-id="${j.id}" class="${selected === j.id ? "sel" : ""}">
+      <td><div class="role">${esc(j.title || "Untitled role")}</div><div class="co">${esc(j.company || "")}${j.source === "linkedin" ? " · LinkedIn" : ""}</div></td>
+      <td>${esc(j.location || "")}${j.workplace ? `<div class="co">${esc(j.workplace)}</div>` : ""}</td>
+      <td class="fit">${j.fit_score == null ? '<span class="hint">–</span>' : Math.round(j.fit_score)}</td>
+      <td><select data-status="${j.id}">${STATUSES.map(s => `<option value="${s}" ${s === j.status ? "selected" : ""}>${LABEL[s]}</option>`).join("")}</select></td>
+      <td>${j.applied_on || ""}</td>
+      <td class="${due ? "due" : ""}">${j.follow_up_on || ""}</td>
+      <td>${j.url ? `<a href="${esc(j.url)}" target="_blank" rel="noopener" title="Open posting">↗</a>` : ""}</td></tr>`;
+  }).join("");
+  $("rows").querySelectorAll("tr").forEach(tr => tr.onclick = (e) => {
+    if (e.target.closest("select, a")) return; openJob(+tr.dataset.id);
+  });
+  $("rows").querySelectorAll("select[data-status]").forEach(sel => sel.onchange = () => setStatus(+sel.dataset.status, sel.value));
+}
+$("q").oninput = render;
+
+async function setStatus(id, status) {
+  const j = await json(`/api/v1/jobs/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+  upsert(j); if (selected === id) renderDrawer(j); loadStats();
+}
+function upsert(j) { const i = jobs.findIndex(x => x.id === j.id); if (i >= 0) jobs[i] = { ...jobs[i], ...j }; else jobs.unshift(j); render(); }
+
+/* ---------- add / search ---------- */
+$("btn-add").onclick = () => { $("form-add").hidden = !$("form-add").hidden; $("form-search").hidden = true; $("add-url").focus(); };
+$("btn-search").onclick = () => { $("form-search").hidden = !$("form-search").hidden; $("form-add").hidden = true; };
+$("add-go").onclick = async () => {
+  showErr($("add-err")); const btn = $("add-go"); busy(btn, true, "Adding…");
+  try {
+    const body = { url: $("add-url").value.trim() || null, text: $("add-text").value.trim() || null,
+                   title: $("add-title").value.trim() || null, company: $("add-company").value.trim() || null };
+    const j = await json("/api/v1/jobs", { method: "POST", body: JSON.stringify(body) });
+    ["add-url","add-text","add-title","add-company"].forEach(id => $(id).value = "");
+    $("form-add").hidden = true; upsert(j); openJob(j.id); loadStats();
+  } catch (e) { showErr($("add-err"), e.message); } finally { busy(btn, false); }
+};
+$("s-go").onclick = async () => {
+  showErr($("s-err")); const btn = $("s-go"); busy(btn, true, "Searching… (a minute or two)");
+  try {
+    const r = await json("/api/v1/jobs/search/linkedin", { method: "POST", body: JSON.stringify({
+      keywords: $("s-kw").value, geo_id: $("s-loc").value, location: null, posted_within_hours: +$("s-when").value,
+      remote_only: $("s-remote").checked, limit: +$("s-limit").value, fetch_descriptions: $("s-desc").checked }) });
+    showErr($("s-err"), ""); filter = "new"; await loadJobs();
+    $("s-err").hidden = false; $("s-err").className = "hint";
+    $("s-err").textContent = `Found ${r.found}: ${r.added} new, ${r.already_tracked} already tracked.`;
+  } catch (e) { $("s-err").className = "err"; showErr($("s-err"), e.message); } finally { busy(btn, false); }
+};
+
+/* ---------- drawer ---------- */
+async function openJob(id) { selected = id; render(); renderDrawer(await json(`/api/v1/jobs/${id}`)); }
+function closeDrawer() { selected = null; editing = false; $("drawer").hidden = true; render(); }
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("drawer").hidden) closeDrawer(); });
+
+function reportHtml(r) {
+  if (!r) return "";
+  const f = r.fit, ff = r.faithfulness;
+  const issues = ff.issues.filter(i => i.severity === "error").concat(ff.issues.filter(i => i.severity === "warning"));
+  return `<div class="stats">
+      <div class="stat"><b>${f.score}</b><span>Fit score</span></div>
+      <div class="stat"><b>${Math.round(f.keyword_coverage * 100)}%</b><span>Keyword coverage</span></div>
+      <div class="stat"><b class="${ff.passed ? "ok" : "bad"}">${ff.passed ? "Pass" : "Check"}</b><span>Faithfulness</span></div></div>
+    ${issues.length ? `<h3>Review</h3><ul class="list">${issues.map(i => `<li class="${i.severity === "error" ? "bad" : "warn"}">${esc(i.location)}: ${esc(i.message)}</li>`).join("")}</ul>` : ""}
+    ${f.gaps.length ? `<h3>Gaps</h3><ul class="list">${f.gaps.map(g => `<li>${esc(g)}</li>`).join("")}</ul>` : ""}
+    ${f.missing_keywords_you_have.length ? `<h3>You have these, not used here</h3>${f.missing_keywords_you_have.map(k => `<span class="tag have">${esc(k)}</span>`).join("")}` : ""}
+    ${f.missing_keywords_you_lack.length ? `<h3>Not in your resume</h3>${f.missing_keywords_you_lack.map(k => `<span class="tag lack">${esc(k)}</span>`).join("")}` : ""}`;
+}
+
+function renderDrawer(j) {
+  const d = $("drawer"); d.hidden = false; editing = false;
+  d.innerHTML = `
+    <div class="row"><div class="grow"><h2>${esc(j.title || "Untitled role")}</h2>
+      <div class="sub">${esc([j.company, j.location, j.workplace, j.posted].filter(Boolean).join(" · "))}</div></div>
+      <button class="small" id="d-close">Close</button></div>
+    <div class="row">
+      ${j.url ? `<a href="${esc(j.url)}" target="_blank" rel="noopener"><button class="small">Open posting ↗</button></a>` : ""}
+      ${j.apply_url ? `<a href="${esc(j.apply_url)}" target="_blank" rel="noopener"><button class="small">Apply ↗</button></a>` : ""}
+      <span class="grow"></span><button class="small" id="d-del">Delete</button></div>
+
+    <h3>Application</h3>
+    <div class="two">
+      <div><label class="f">Status</label><select id="d-status">${STATUSES.map(s => `<option value="${s}" ${s === j.status ? "selected" : ""}>${LABEL[s]}</option>`).join("")}</select></div>
+      <div><label class="f">Applied on</label><input id="d-applied" type="date" value="${j.applied_on || ""}"></div>
+      <div><label class="f">Follow up on</label><input id="d-follow" type="date" value="${j.follow_up_on || ""}"></div>
+      <div><label class="f">Contact</label><input id="d-cname" placeholder="Name" value="${esc(j.contact_name || "")}"></div>
+    </div>
+    <div style="margin-top:8px"><label class="f">Contact profile</label><input id="d-curl" placeholder="https://www.linkedin.com/in/…" value="${esc(j.contact_url || "")}"></div>
+    <div style="margin-top:8px"><label class="f">Notes</label><textarea id="d-notes" rows="3" placeholder="Referral, recruiter name, salary range, interview prep…">${esc(j.notes || "")}</textarea></div>
+    <div class="row" style="margin-top:8px"><button class="primary small" id="d-save">Save</button><span class="hint" id="d-saved"></span></div>
+
+    <h3>Description</h3>
+    ${j.description ? `<div class="desc">${esc(j.description)}</div>` : `<div class="row"><span class="hint">Not read yet.</span><button class="small" id="d-refresh">Read it now</button></div>`}
+
+    <h3>Tailored resume</h3>
+    <div class="row"><button class="primary" id="d-tailor">${j.has_resume ? "Tailor again" : "Tailor resume"}</button>
+      ${j.has_resume ? `<button id="d-edit">Edit text</button><button id="d-store" hidden>Save edits</button><a href="/api/v1/jobs/${j.id}/resume.pdf"><button>Download PDF</button></a>` : ""}
+      <span class="hint">${j.tailored_at ? "Last tailored " + new Date(j.tailored_at).toLocaleString() : ""}</span></div>
+    <div class="err" id="d-err" hidden></div>
+    <div class="report">${reportHtml(j.tailor_result)}</div>
+    ${j.has_resume ? `<iframe class="resume" id="d-frame" title="Tailored resume" style="margin-top:10px" src="/api/v1/jobs/${j.id}/resume?ts=${Date.now()}"></iframe>` : ""}
+
+    <h3>History</h3>
+    <ol class="timeline">${j.events.slice().reverse().map(e => `<li>${new Date(e.at).toLocaleString()}: ${esc(
+      e.kind === "status" ? `${LABEL[e.from] || e.from} → ${LABEL[e.to] || e.to}` : e.kind + (e.detail ? ` (${e.detail})` : ""))}</li>`).join("")}</ol>`;
+
+  $("d-close").onclick = closeDrawer;
+  $("d-del").onclick = async () => { if (!confirm("Delete this job and its history?")) return;
+    await api(`/api/v1/jobs/${j.id}`, { method: "DELETE" }); jobs = jobs.filter(x => x.id !== j.id); closeDrawer(); loadStats(); };
+  $("d-save").onclick = async () => {
+    const body = { status: $("d-status").value, applied_on: $("d-applied").value || null, follow_up_on: $("d-follow").value || null,
+                   contact_name: $("d-cname").value || null, contact_url: $("d-curl").value || null, notes: $("d-notes").value || null };
+    const u = await json(`/api/v1/jobs/${j.id}`, { method: "PATCH", body: JSON.stringify(body) });
+    upsert(u); renderDrawer(u); $("d-saved").textContent = "Saved"; loadStats();
+  };
+  if ($("d-refresh")) $("d-refresh").onclick = async () => {
+    const b = $("d-refresh"); busy(b, true, "Reading…");
+    try { const u = await json(`/api/v1/jobs/${j.id}/refresh`, { method: "POST" }); upsert(u); renderDrawer(u); }
+    catch (e) { showErr($("d-err"), e.message); busy(b, false); }
+  };
+  $("d-tailor").onclick = async () => {
+    const b = $("d-tailor"); busy(b, true, "Tailoring… (about 30s)"); showErr($("d-err"));
+    try { await json(`/api/v1/jobs/${j.id}/tailor`, { method: "POST" }); const u = await json(`/api/v1/jobs/${j.id}`); upsert(u); renderDrawer(u); }
+    catch (e) { showErr($("d-err"), e.message); busy(b, false); }
+  };
+  if ($("d-edit")) $("d-edit").onclick = () => {
+    const doc = $("d-frame").contentDocument; editing = !editing; doc.body.contentEditable = editing ? "true" : "false";
+    $("d-edit").textContent = editing ? "Stop editing" : "Edit text"; $("d-store").hidden = !editing;
+  };
+  if ($("d-store")) $("d-store").onclick = async () => {
+    const doc = $("d-frame").contentDocument; doc.body.removeAttribute("contenteditable");
+    const html = "<!doctype html>\n" + doc.documentElement.outerHTML;
+    await api(`/api/v1/jobs/${j.id}/resume`, { method: "PUT", body: JSON.stringify({ html }) });
+    editing = false; $("d-edit").textContent = "Edit text"; $("d-store").hidden = true; $("d-saved").textContent = "Resume edits saved";
+  };
+}
+
+/* ---------- quick tailor ---------- */
+$("qt-sample").onclick = async () => { $("qt-text").value = (await json("/api/v1/sample-job")).text; };
+$("qt-go").onclick = async () => {
+  const b = $("qt-go"); busy(b, true, "Tailoring…"); showErr($("qt-err"));
+  try { const r = await json("/api/v1/tailor", { method: "POST", body: JSON.stringify({ job: { text: $("qt-text").value } }) });
+        $("qt-report").innerHTML = reportHtml(r); $("qt-frame").srcdoc = r.html; }
+  catch (e) { showErr($("qt-err"), e.message); } finally { busy(b, false); }
+};
+
+loadJobs();
+</script>
+</body>
+</html>

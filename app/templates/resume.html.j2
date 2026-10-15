@@ -1,0 +1,171 @@
+{#-
+  HTML twin of Benny's LaTeX resume (article 11pt, letterpaper, fullpage + custom margins).
+  Sizes follow LaTeX's 11pt class: \normalsize 10.95pt, \small 10pt, \large 12pt, \Huge 24.88pt.
+  Fonts: Latin Modern Roman (the OpenType Computer Modern), embedded. Icons: Font Awesome Free, inline SVG.
+  Edit freely; the layout lives only in this file.
+-#}
+{%- macro icon(name) -%}
+{%- set i = icons.get(name) -%}
+{%- if i %}<svg class="fa" viewBox="{{ i.viewBox }}" aria-hidden="true"><path d="{{ i.path }}"/></svg>{% endif -%}
+{%- endmacro -%}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ contact.name }} – Resume</title>
+<style>
+{{ fonts_css | safe }}
+  @page { size: Letter; margin: 0.17in 0.41in 0.3in 0.41in; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; }
+  /* On screen, show it as a page with the same margins it prints with. */
+  @media screen { body { max-width: 8.5in; margin: 0 auto; padding: 0.32in 0.41in; background: #fff; } }
+  body {
+    margin: 0;
+    font-family: "LM Roman 10", "Latin Modern Roman", "CMU Serif", Georgia, serif;
+    font-size: 10.95pt;
+    line-height: 13.6pt;
+    color: #130810;
+    font-kerning: normal;
+    font-variant-ligatures: common-ligatures;
+  }
+  a { color: inherit; text-decoration: none; }
+  .u { text-decoration: underline; text-decoration-thickness: 0.4pt; text-underline-offset: 1.6pt; }
+  svg.fa { height: 0.82em; width: auto; vertical-align: -0.1em; fill: currentColor; margin-right: 0.28em; }
+
+  /* ---------- heading ---------- */
+  header { text-align: center; }
+  h1 { font-family: "LM Roman 12", serif; font-weight: 700; font-size: 24.88pt; line-height: 30pt; margin: 0 0 2pt; letter-spacing: 0.01em; }
+  .contact { font-size: 10pt; line-height: 12pt; margin-bottom: 5pt; }
+  .contact > span, .contact > a { margin: 0 4.5pt; white-space: nowrap; }
+
+  /* ---------- sections (\titleformat: \large\bfseries, \titlerule) ---------- */
+  h2 {
+    font-family: "LM Roman 12", serif; font-size: 12pt; line-height: 14pt; font-weight: 700;
+    margin: 11pt 0 3pt; padding-bottom: 1.6pt; border-bottom: 0.5pt solid #130810;
+  }
+  header + h2 { margin-top: 16pt; }
+
+  /* ---------- \resumeSubheading ---------- */
+  .entry { margin: 0 0 7.4pt; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; }
+  .row .l { font-family: "LM Roman 12", serif; font-size: 12pt; line-height: 13.5pt; }
+  .row .r { font-size: 10pt; line-height: 12pt; white-space: nowrap; padding-left: 12pt; }
+  .row.top .l, .row.top .r { font-weight: 700; }
+  .row.sub .l, .row.sub .r { font-style: italic; }
+
+  /* ---------- \resumeItem lists ---------- */
+  ul.items { margin: -1.2pt 0 0; padding: 0 0 0 24pt; list-style: none; }
+  ul.items li { position: relative; line-height: 12pt; margin: 0 0 2.3pt; text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+  ul.items li::before {
+    content: ""; position: absolute; left: -10.5pt; top: 4.9pt; width: 2.6pt; height: 2.6pt; border-radius: 50%; background: currentColor;
+  }
+
+  /* ---------- \resumeProjectHeading ---------- */
+  .proj .name { font-weight: 700; }
+  ul.items.ragged li { text-align: left; hyphens: manual; -webkit-hyphens: manual; }
+  .proj svg.fa { margin: 0 0.15em 0 0.3em; }
+  .proj .bar { margin: 0 0.35em; }
+  .proj .r { font-weight: 700; }
+
+  /* ---------- skills tabular ---------- */
+  table.skills { border-collapse: collapse; margin: 1pt 0 0; }
+  table.skills td { padding: 0; vertical-align: top; }
+  table.skills td.k { font-weight: 700; white-space: nowrap; padding-right: 8pt; }
+
+  /* ---------- certifications: two p{0.48\textwidth} columns ---------- */
+  table.certs { border-collapse: collapse; width: 100%; table-layout: fixed; margin-top: 1pt; }
+  table.certs td { width: 50%; padding: 0; vertical-align: top; }
+</style>
+</head>
+<body>
+<header>
+  <h1>{{ contact.name }}</h1>
+  <div class="contact">
+    {%- if contact.location %}<span>{{ icon('location') }}{{ contact.location }}</span>{% endif -%}
+    {%- if contact.phone %}<a href="tel:{{ contact.phone | phone_href }}">{{ icon('phone') }}{{ contact.phone }}</a>{% endif -%}
+    {%- if contact.email %}<a href="mailto:{{ contact.email }}">{{ icon('email') }}{{ contact.email }}</a>{% endif -%}
+  </div>
+  {%- if contact.links %}
+  <div class="contact">
+    {%- for l in contact.links %}<a href="{{ l.url }}">{{ icon(l.icon or (l.url | link_icon)) }}<span class="u">{{ l.label }}</span></a>{% endfor -%}
+  </div>
+  {%- endif %}
+  {%- if layout.show_headline and headline %}<div class="contact"><i>{{ headline }}</i></div>{% endif %}
+</header>
+
+{%- for section in layout.section_order %}
+
+{%- if section == 'summary' and layout.show_summary and summary %}
+<h2>SUMMARY</h2>
+<p style="margin:0;text-align:justify;hyphens:auto">{{ summary | rich }}</p>
+
+{%- elif section == 'experience' and experience %}
+<h2>WORK EXPERIENCE</h2>
+{%- for e in experience %}
+<section class="entry">
+  <div class="row top"><span class="l">{{ e.role.company }}</span><span class="r">{{ e.role.start }} – {{ e.role.end }}</span></div>
+  <div class="row sub"><span class="l">{{ e.role.title }}</span><span class="r">{{ e.role.location or '' }}</span></div>
+  <ul class="items">
+    {%- for b in e.bullets %}
+    <li>{{ b.text | rich }}</li>
+    {%- endfor %}
+    {%- if layout.show_role_skills and e.role.skills %}
+    <li><b>Skills:</b> {{ e.role.skills | join(', ') }}</li>
+    {%- endif %}
+  </ul>
+</section>
+{%- endfor %}
+
+{%- elif section == 'education' and education %}
+<h2>EDUCATION</h2>
+{%- for ed in education %}
+<section class="entry">
+  <div class="row top"><span class="l">{{ ed.degree }}</span><span class="r">{{ ed.start or '' }}{% if ed.start and ed.end %} – {% endif %}{{ ed.end or '' }}</span></div>
+  <div class="row sub"><span class="l">{{ ed.school }}</span><span class="r">{{ ed.location or '' }}</span></div>
+</section>
+{%- endfor %}
+
+{%- elif section == 'skills' and skills %}
+<h2>TECHNICAL SKILLS</h2>
+<table class="skills">
+  {%- for g in skills %}
+  <tr><td class="k">{{ g.category }}:</td><td>{{ g.items | join(', ') }}</td></tr>
+  {%- endfor %}
+</table>
+
+{%- elif section == 'projects' and projects %}
+<h2>PROJECTS</h2>
+{%- for p in projects %}
+<section class="entry">
+  <div class="row proj">
+    <span class="l"><span class="name">{{ p.project.name }}</span>
+      {%- if p.project.url %}<a href="{{ p.project.url }}" aria-label="Source code">{{ icon('github') }}</a>{% endif -%}
+      {%- if p.project.tech %}<span class="bar">|</span>{{ (p.project.heading_tech or p.project.tech[:layout.max_project_tech]) | join(', ') }}{% endif %}</span>
+    <span class="r">{{ p.project.date or '' }}</span>
+  </div>
+  <ul class="items ragged">
+    {%- for b in p.bullets %}
+    <li>{{ b.text | rich }}</li>
+    {%- endfor %}
+  </ul>
+</section>
+{%- endfor %}
+
+{%- elif section == 'certifications' and certifications %}
+<h2>CERTIFICATIONS</h2>
+<table class="certs">
+  {%- for pair in certifications | batch(2) %}
+  {%- set row = loop.index0 %}
+  <tr>
+    {%- for c in pair %}
+    <td>{{ row * 2 + loop.index }}. {{ c.name }}<br>({{ c | cert_when }})</td>
+    {%- endfor %}
+    {%- if pair | length == 1 %}<td></td>{% endif %}
+  </tr>
+  {%- endfor %}
+</table>
+{%- endif %}
+{%- endfor %}
+</body>
+</html>

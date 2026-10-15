@@ -1,0 +1,258 @@
+# Master resume: the single source of truth for tailoring.
+# Every bullet has a stable id. Tailored bullets must cite the ids they came from, and the
+# faithfulness checks reject anything that cannot be traced back here.
+#
+# Add MORE than fits on a page. Bullets with `in_base: false` are left out of your base resume
+# but the tailor can still pick them when a job calls for them.
+# **double asterisks** make text bold, as \textbf does in the LaTeX version.
+
+layout:
+  # Reproduces the LaTeX template: no summary, Projects after Technical Skills.
+  section_order: [summary, experience, education, skills, projects, certifications]
+  show_headline: false
+  show_summary: false
+  show_role_skills: true
+  max_project_tech: 4
+  max_pages: 1
+
+contact:
+  name: Benny Daniel Tharigopala
+  location: Canada
+  phone: "782-882-2954"
+  email: benny28dany@gmail.com
+  links:
+    - label: linkedin.com/in/bennydaniel616
+      url: https://www.linkedin.com/in/bennydaniel616/
+      icon: linkedin
+    - label: maxeffortgazette.com
+      url: https://maxeffortgazette.com
+      icon: blog
+    - label: bennydanielt.github.io
+      url: https://bennydanielt.github.io
+      icon: github
+    - label: Intellifit Labs
+      url: https://www.youtube.com/@IntelliFitLabs
+      icon: youtube
+
+headline: AI Engineer | LLM apps, agents, RAG evaluation, cloud deployment (Azure, AWS)
+summary: >-
+  Software engineer with experience across data engineering, DevOps and application development,
+  now building LLM applications and agents. Designed and deployed an MCP server that lets an LLM
+  query VTScada's proprietary ODBC database in natural language.
+
+experience:
+  - id: trihedral
+    company: Trihedral Engineering Limited
+    title: Software Developer
+    location: Halifax, Canada
+    start: January 2025
+    end: Present
+    bullets:
+      - id: trihedral-mcp
+        text: >-
+          Designed and deployed an MCP (Model Context Protocol) server using Python and FastMCP to
+          enable LLM-driven interaction with VTScada's proprietary ODBC database, allowing users to
+          execute natural language data queries, generate interactive operational reports, and
+          retrieve contextual system insights, thereby reducing manual data access workflows &
+          accelerating troubleshooting and analysis.
+      - id: trihedral-debugger
+        text: >-
+          Enhanced the VTScada Source Debugger by implementing dynamic data structure updates and
+          real-time formatting logic using VTScada Script, increasing debugging efficiency by 35%.
+      - id: trihedral-django
+        text: >-
+          Built an internal Django and REST Framework web app over PostgreSQL that lets the team
+          generate custom interactive operational reports on demand via the MCP tool — with DRF API
+          endpoints, an authenticated UI, and an admin interface — turning a manual process into
+          self-service.
+      - id: trihedral-testing
+        in_base: false
+        text: >-
+          Spearheaded rigorous debugging and testing efforts ensuring robust software performance,
+          reducing post-release defects by 15%, bolstering VTScada's reputation as a reliable SCADA
+          solution.
+      - id: trihedral-license
+        text: >-
+          Engineered bulk key generation and property updates for the organization's license key
+          management application, eliminating manual entry and reducing effort required by 75%.
+    skills: [VTScada Script, Python, Django, Agile Methodology, Software Testing]
+
+  - id: bluegrid
+    company: BlueGrid (Formerly Rimot)
+    title: DevOps Developer
+    location: Halifax, Canada
+    start: September 2023
+    end: March 2024
+    bullets:
+      - id: bluegrid-cicd
+        text: >-
+          Orchestrated automated CI/CD pipelines for Python codebases on AWS Elastic Container
+          Service using Bitbucket pipelines, reducing manual deployment efforts by 80%.
+      - id: bluegrid-dashboard
+        text: >-
+          Created a dashboard with Django for an overview of the exploratory data analysis and
+          visualizations on spatial boat sensor data.
+      - id: bluegrid-membertou
+        text: >-
+          Analyzed spatial/boat sensor data via interpolation & calculus to derive voyage metrics
+          for Membertou First Nations fishing fleet electrification; automated end-to-end Python app
+          (AWS S3/SNS/SQS/SES), eliminating 100% of manual analytics and chart plotting.
+      - id: bluegrid-iac
+        in_base: false
+        text: >-
+          Configured and maintained cloud infrastructure leveraging AWS CDK and Docker Compose for
+          scalable, repeatable deployments.
+    skills: [Python, Django, Plotly, AWS, Docker, AWS CDK, Bitbucket Pipelines]
+
+  - id: astrazeneca
+    company: AstraZeneca Pvt. Ltd.
+    title: Associate Engineer
+    location: Chennai, India
+    start: May 2018
+    end: July 2021
+    bullets:
+      - id: az-databricks
+        text: >-
+          Leveraged AWS S3 and Azure Databricks to transform and optimize data stored in parquet
+          format, accelerating processing by 45% through automated YAML-based jobs.
+      - id: az-airflow
+        text: >-
+          Orchestrated data pipelines with Spark and automated Apache Airflow ETL jobs, cutting
+          manual deployment tasks by over 70%.
+      - id: az-microstrategy
+        text: >-
+          Constructed dynamic in-memory datasets in MicroStrategy improving dashboard data render
+          time by 40%.
+      - id: az-kpis
+        text: >-
+          Developed BI dashboards with 300+ KPIs using PostgreSQL for real-time and historical
+          business insights.
+    skills: [Python, Spark, Apache Airflow, PostgreSQL, AWS S3, Azure Databricks, MicroStrategy & Agile]
+
+projects:
+  - id: autonomy-platform
+    name: Multi-Agent Autonomy Platform
+    url: https://github.com/BennyDanielT/versos-agent-platform
+    tech: [NeMo Agent Toolkit, FastAPI, PostgreSQL, AWS, LangGraph]
+    heading_tech: [NeMo Agent Toolkit, FastAPI, PostgreSQL, AWS]
+    date: July 2026
+    bullets:
+      - id: autonomy-full
+        text: >-
+          Architected a Generative AI multi-agent platform (three autonomous LLM agents) on one
+          governance spine that assesses, gates autonomy through a human-owned policy, and evaluates,
+          each using a distinct reasoning engine: an LLM for support triage, deterministic SQL over
+          Postgres catalogs for index hygiene, and a LangGraph state machine for pipeline
+          self-healing. Enforced policy-as-data autonomy in code with a global kill switch, hard caps
+          blocking destructive auto-actions, and guardrails such as prompt-injection screening and PII
+          masking; deployed on AWS using ECS Fargate, RDS, and Amplify with OIDC-based GitHub Actions
+          CI/CD.
+
+  - id: n8n-outreach
+    name: N8N Job Application Automation System
+    url: https://github.com/BennyDanielT/n8n-job-outreach-workflow
+    tech: [N8N, LLMs, Python, HTML]
+    heading_tech: [N8N, LLMs, Python, HTML]
+    date: May 2026
+    bullets:
+      - id: n8n-pipeline
+        text: >-
+          Engineered an end-to-end recruitment automation pipeline with N8N, integrating Google
+          Sheets, web scraping services, Generative-AI resume optimization (prompt engineering + LLM
+          output structuring), and automated outreach workflows, enabling intelligent job parsing,
+          candidate-role fit analysis, contextual resume customization, and networking workflow
+          automation.
+
+  - id: retro-agent
+    name: AI Retrospective & Slack Notes Agent
+    url: https://github.com/BennyDanielT/Slack-Jira-Automation
+    tech: [Langchain, Slack, JIRA, FastAPI, SQL]
+    heading_tech: [Langchain, Slack, JIRA, FastAPI, SQL]
+    date: March 2026
+    bullets:
+      - id: retro-summaries
+        text: >-
+          Developed a Slack-integrated AI agent that automatically aggregated developer updates and
+          notes, linked context to JIRA tickets, and generated retrospective summaries highlighting
+          achievements, blockers, and action items, reducing manual sprint reporting time by at least
+          70%.
+
+  - id: insights-dashboard
+    name: Personal Insights Dashboard & MCP Tools
+    url: https://github.com/BennyDanielT/Solo-Levelling
+    # Note: the LaTeX heading says Django, the bullet says FastAPI. Pick one.
+    tech: [React (Next.js), Django, LLMs, FastAPI, MongoDB, Ollama, Azure AI Foundry]
+    heading_tech: [React (Next.js), Django, LLMs]
+    date: January 2026
+    bullets:
+      - id: insights-full
+        text: >-
+          Built a full-stack goal-tracking dashboard using Next.js, FastAPI, and MongoDB, integrating
+          an LLM-powered insights module hosted on Ollama, with tools and API calling capabilities for
+          personalised recommendations. Migrated deployment to Azure App Service with CI/CD pipelines
+          and Azure AI Foundry to enhance AI capabilities and governance. Enforced guardrails and
+          implemented monitoring and evaluation on Azure.
+
+  - id: sales-prioritizer
+    name: AI Sales Prioritizer
+    url: https://github.com/BennyDanielT/ai-hub-backend
+    # Note: the LaTeX heading says FastAPI, the bullet says NodeJS. Pick one.
+    tech: [Transformers, LLMs, NextJs, FastAPI, Node.js, Redis, Mistral AI, NextAuth]
+    heading_tech: [Transformers, LLMs, NextJs, FastAPI]
+    date: December 2025
+    bullets:
+      - id: sales-full
+        text: >-
+          Developed a full-stack LinkedIn Profile Analysis & Sales Prioritization app using React
+          (Next.js), and **NodeJS**, automating data scraping & profile analysis to enhance lead
+          qualification. Used **Redis** for distributed task queue management and state tracking,
+          while integrating Mistral AI LLM APIs with embedding-based semantic scoring (RAG-style
+          relevance) to calculate semantic relevance scores, improving lead identification
+          efficiency by 40% and reducing manual analysis time by 85%. Ensured secure user
+          management with **NextAuth**, processing over 5,000 profiles with a 95% accuracy rate.
+
+education:
+  - degree: Master of Applied Computer Science
+    school: Dalhousie University
+    location: Halifax, Canada
+    start: September 2021
+    end: April 2023
+
+skills:
+  - category: Programming Languages
+    items: [Python, Java]
+  - category: Databases
+    items: [SQL, NoSQL, Neo4j & VectorDB]
+  - category: Cloud Services
+    items: [AWS, Azure, GCP, DigitalOcean, Databricks]
+  - category: Web Technologies
+    items: [REST APIs, GraphQL, Django, FastAPI]
+  - category: Version Control
+    items: [GitHub, GitLab, Bamboo, Bitbucket]
+  - category: Workflow Management
+    items: [N8N, Jira, GitHub Actions, Airflow]
+  - category: Containerization
+    items: [Kubernetes, Docker]
+  - category: Test Frameworks
+    items: [JUnit, Mockito, Pytest, Jest]
+  - category: Generative AI
+    items: [RAG, Agentic Workflows, Evaluation, Guardrails, Vector Search, MCP]
+  - category: LLM Frameworks
+    items: [Langchain, Streamlit, NVIDIA NeMo Agent Toolkit]
+
+# status: active | in_progress | expired. Expired ones are hidden unless you ask for them.
+certifications:
+  - name: CNCF Certified Kubernetes Application Developer
+    status: in_progress
+  - name: AWS Certified Developer – Associate
+    date: October 2023
+    status: active
+  - name: AWS Certified Solutions Architect – Associate
+    date: April 2023
+    status: expired
+  - name: "HashiCorp Certified: Terraform Associate"
+    date: February 2023
+    status: expired
+  - name: AWS Certified Cloud Practitioner
+    date: October 2022
+    status: expired

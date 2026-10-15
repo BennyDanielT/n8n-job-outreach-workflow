@@ -1,98 +1,47 @@
-# Add named volume for Chrome profile persistence
-volumes:
-  linkedin_chrome_profile:
-  n8n_data:
-
-networks:
-  appnet:
-    driver: bridge
-
-version: '3.8'
-
 services:
-  linkedin-scraper:
+  api:
     build: .
-    container_name: linkedin-job-scraper
     ports:
-      - '5000:5000'
-    volumes:
-      - ./app.py:/app/app.py
-      - ./linkedin_functions.py:/app/linkedin_functions.py
-      - ./.env:/app/.env
-      - linkedin_chrome_profile:/home/appuser/SeleniumProfile
+      - "8000:8000"
+    env_file: .env
     environment:
-      - LINKEDIN_EMAIL=${LINKEDIN_EMAIL}
-      - LINKEDIN_PASSWORD=${LINKEDIN_PASSWORD}
-      - PORT=5000
-    command: uvicorn app:app --host 0.0.0.0 --port 5000 --reload
-    restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          'CMD',
-          'python',
-          '-c',
-          "import requests; requests.get('http://localhost:5000/health')",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    shm_size: 2g
-    networks:
-      - appnet
-
-  ngrok:
-    image: ngrok/ngrok:latest
-    container_name: ngrok-tunnel
-    restart: unless-stopped
-    command:
-      - 'start'
-      - '--all'
-      - '--config'
-      - '/etc/ngrok.yml'
+      GOTENBERG_URL: http://gotenberg:3000
+      PDF_ENGINE: gotenberg
+      DATABASE_URL: sqlite:////app/data/copilot.db
+      CHROME_PROFILE_DIR: /home/appuser/chrome-profile
     volumes:
-      - ./ngrok.yml:/etc/ngrok.yml
-    ports:
-      - '4040:4040' # ngrok web interface
+      # The tracker database and your master resume stay on your machine, not in the container.
+      - ./data:/app/data
+      - chrome_profile:/home/appuser/chrome-profile
+    shm_size: 2g        # Chromium needs more shared memory than Docker's default
     depends_on:
-      - linkedin-scraper
-    networks:
-      - appnet
+      gotenberg:
+        condition: service_healthy
+    restart: unless-stopped
 
   gotenberg:
     image: gotenberg/gotenberg:8
-    container_name: gotenberg-pdf
-    restart: always
-    ports:
-      - '3000:3000'
-    environment:
-      - GOTENBERG_API_TIMEOUT=30s
-      - GOTENBERG_API_PORT=3000
-      - GOTENBERG_LOG_LEVEL=info
+    # Internal only: the API is its only client.
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    networks:
-      - appnet
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
+  # Optional n8n editor, for scheduled searches or outreach flows that call this API.
+  # Start it with: docker compose --profile n8n up
   n8n:
     image: n8nio/n8n:latest
-    container_name: n8n
-    restart: unless-stopped
+    profiles: ["n8n"]
     ports:
-      - '5678:5678'
+      - "5678:5678"
     environment:
-      - N8N_BASIC_AUTH_ACTIVE=false
-      - N8N_HOST=localhost
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=http
-      - GENERIC_TIMEZONE=Europe/London
-    networks:
-      - appnet
+      GENERIC_TIMEZONE: America/Halifax
     volumes:
       - n8n_data:/home/node/.n8n
-      - ./n8n-files:/files
+    restart: unless-stopped
+
+volumes:
+  chrome_profile:
+  n8n_data:
